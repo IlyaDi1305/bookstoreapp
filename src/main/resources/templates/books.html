@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Книги</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function loadBooks(page) {
+            $.getJSON(`/api/books?page=${page}&size=10`, function(data) {
+                let booksList = $('#booksList');
+                booksList.empty();
+
+                data.content.forEach(function(book) {
+                    booksList.append(`
+                        <tr>
+                            <td>${book.title}</td>
+                            <td>${book.brand}</td>
+                            <td>${book.year}</td>
+                            <td>${book.price}</td>
+                            <td>${book.stock}</td>
+                        </tr>
+                    `);
+                });
+
+                let pagination = $('#pagination');
+                pagination.empty();
+
+                if (data.pageable.pageNumber > 0) {
+                    pagination.append(`
+                        <li class="page-item">
+                            <a class="page-link" href="#" onclick="loadBooks(${data.pageable.pageNumber - 1})">&laquo; Предыдущая</a>
+                        </li>
+                    `);
+                }
+
+                for (let i = 0; i < data.totalPages; i++) {
+                    pagination.append(`
+                        <li class="page-item ${i === data.pageable.pageNumber ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="loadBooks(${i})">${i + 1}</a>
+                        </li>
+                    `);
+                }
+
+                if (data.pageable.pageNumber < data.totalPages - 1) {
+                    pagination.append(`
+                        <li class="page-item">
+                            <a class="page-link" href="#" onclick="loadBooks(${data.pageable.pageNumber + 1})">Следующая &raquo;</a>
+                        </li>
+                    `);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            loadBooks(0);
+        });
+    </script>
+</head>
+<body>
+<div class="container mt-4">
+    <h1>Список книг</h1>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Бренд</th>
+            <th>Год</th>
+            <th>Цена</th>
+            <th>В наличии</th>
+        </tr>
+        </thead>
+        <tbody id="booksList">
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination justify-content-center" id="pagination">
+        </ul>
+    </nav>
+</div>
+</body>
+</html>
